@@ -13,7 +13,7 @@ n = 12
 N = 200
 ptimes = [14, 52, 10, 19, 50, 80, 40, 45, 15, 25, 75, 95]
 
-T = 300
+T = 600
 t = 0
 
 w = 0.3   #inertia
@@ -249,22 +249,24 @@ def check_Mj_constraint(particle):
                 
 def check_precedence_constraint(particle):
     
-    prec_const = [7, 3]
-    first = Job(1)
-    second = Job(2)
+    prec_const = [[7, 3],[5 , 6],[4, 2]]
     
-    for machine in particle.machine_list:
-        for job in machine.joblist:
-            if job[1].job_number == prec_const[0]:
-                first = job[1]
-    for machine in particle.machine_list:
-        for job in machine.joblist:
-            if job[1].job_number == prec_const[1]:
-                second = job[1]
-            
-            
-    if second.Cj <= first.Cj + second.Pj:
-        particle.put_penalty()
+    for sublist in prec_const:
+        first = Job(1)
+        second = Job(2)
+        
+        for machine in particle.machine_list:
+            for job in machine.joblist:
+                if job[1].job_number == sublist[0]:
+                    first = job[1]
+        for machine in particle.machine_list:
+            for job in machine.joblist:
+                if job[1].job_number == sublist[1]:
+                    second = job[1]
+                
+                
+        if second.Cj <= first.Cj + second.Pj:
+            particle.put_penalty()
     
     
 # plt.show()

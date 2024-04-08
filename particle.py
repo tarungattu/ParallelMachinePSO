@@ -3,6 +3,8 @@ import numpy as np
 import sys
 import math
 
+penalty = 99999
+
 class Particle:
     def __init__(self, n, m):
         self.position = [round(random.uniform(0, m), 2) for _ in range(n)]  # Initialize random position
@@ -14,6 +16,7 @@ class Particle:
         self.machine_list = []
         self.r1 = random.uniform(0,1)
         self.r2 = random.uniform(0,1)
+        self.penalty_count = 0
         
         # self.joblist = []
         # self.index = []
@@ -34,3 +37,7 @@ class Particle:
                 start_time = job[1].Cj
                 complete_time = job[1].Cj
             machine.lastJobCompTime = complete_time
+            
+    def put_penalty(self):
+        self.Cmax = self.Cmax + penalty
+        self.penalty_count += 1

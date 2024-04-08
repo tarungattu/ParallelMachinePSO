@@ -4,8 +4,6 @@ import sys
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-import matplotlib.dates as mdates
 from particle import Particle
 from machine import Machine
 from job import Job
@@ -22,17 +20,23 @@ w = 0.3   #inertia
 c1 = 2    #cognitive
 c2 = 1.5    #social
 
+penalty = 99999
+
 if len(sys.argv) > 1:
     print_out = sys.argv[1].lower() == 'true'
 else:
     # Default value if no command-line argument is provided
     print_out = False
 
+if len(sys.argv) > 1:
+    print_out1 = sys.argv[1].lower() == 'true1'
+else:
+    # Default value if no command-line argument is provided
+    print_out1 = False
+
         
 def assign_jobs_to_machines(particle, jobs):
-    
     job = particle.position
-    
     # empty the machines schedule before new assignment.
     for machine in particle.machine_list:
         machine.joblist = []
@@ -219,7 +223,28 @@ def check_global_best(swarm, gbest):
     for particle in swarm:
         particle.global_best = gbest.position
 
+# def generateMjConstraint(m):
+    
+#     length = random.randint(1, m)  # Random length within the range 1 to m
+#     numbers = random.sample(range(0, m), length)  # Sample without replacement from the range 1 to m
+#     return numbers
 
+def assignMjConstraints(newjobs):
+    # random_lists = [generateMjConstraint(m) for _ in range(n)]
+    
+    MjConst = [0,2]
+    
+    # Assign the randomly generated lists to the corresponding elements in each sublist
+    for sublist in newjobs:
+        sublist[5].Mj = MjConst
+
+def check_Mj_constraint(particle):
+    for machine in particle.machine_list:
+        for job in machine.joblist:
+            if machine.machine_id not in job[1].Mj and len(job[1].Mj) != 0:
+                particle.put_penalty()
+    
+    
 # plt.show()
 
 if __name__ == '__main__':
@@ -232,15 +257,25 @@ if __name__ == '__main__':
     jobs = [Job(number) for number in range(n*N)]
     #assign the data to the jobs
     assign_processing_times(jobs, ptimes)
-
+    
+    
+    # assign machines to particles
     assignMachinesToParticles(swarm, machines)
 
     times = n
 
     # Split the list into sublists of size N
     newjobs = [jobs[i:i+times] for i in range(0, len(jobs), times)]
+    
+    # generateMjConstraint(m)
+    assignMjConstraints(newjobs)
+    
+    if print_out1:
+        for sublist in newjobs:
+            for obj in sublist:
+                print(f"{obj.job_number} Random List: {obj.Mj}")
+    
     # assign jobs to machines in each particle
-   
     for particle,i in zip(swarm, range(0, len(newjobs))):
         assign_jobs_to_machines(particle , newjobs[i])   
 
@@ -291,6 +326,7 @@ if __name__ == '__main__':
 
 
         print(len(swarm[0].machine_list[0].joblist))
+        
     
     ypoints = []
     
@@ -298,31 +334,33 @@ if __name__ == '__main__':
     bestlist = []
     counter = 0
     history = 0
+    
+    # start of generation loop
     while t < T:
         
         # set_global_best(swarm)
         gbest = get_global_particle(swarm[0])
+        checkbounds(gbest)
        
-        
-        
-            
         for particle, i in zip(swarm, range(0,len(newjobs))):
             getVelocity(c1= c1, c2= c2, w= w, particle = particle)
             update_position(particle)
             checkbounds(particle)
             assign_jobs_to_machines(particle, newjobs[i])
             getinduv_makespan(particle)
+            check_Mj_constraint(particle)
             set_local_best(particle)
             
         check_global_best(swarm, gbest)
         
         bestCmax, value = get_best_makespan(swarm)
+        checkbounds(bestCmax)
         
         # count no of times same Cmax
         if counter >= 3:
            break 
         
-       
+        
         bestlist.append(bestCmax)
         
         
@@ -334,7 +372,6 @@ if __name__ == '__main__':
             
         # set new history for next gen
         history = value
-
         
         t += 1
         
@@ -357,6 +394,7 @@ if __name__ == '__main__':
     PlotGanttChar(bestlist[0])
     plt.show()
     
+print('done')
     
             
     

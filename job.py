@@ -1,4 +1,4 @@
-
+# number of jobs
 n = 12
 
 class Job:
@@ -8,5 +8,6 @@ class Job:
         self.start_time = 0
         self.Pj = 0
         self.Cj = 0
+        self.Mj = []
         
         

@@ -13,14 +13,14 @@ n = 12
 N = 200
 ptimes = [14, 52, 10, 19, 50, 80, 40, 45, 15, 25, 75, 95]
 
-T = 200
+T = 300
 t = 0
 
 w = 0.3   #inertia
 c1 = 2    #cognitive
 c2 = 1.5    #social
 
-penalty = 99999
+penalty = 999
 
 if len(sys.argv) > 1:
     print_out = sys.argv[1].lower() == 'true'
@@ -61,7 +61,7 @@ def assignMachinesToParticles(swarm, machines):
     
     # Assign three machine objects to each swarm object
     for particle, machine in zip(swarm, [machines[i:i+num_machines_per_particle] for i in range(0, len(machines), num_machines_per_particle)]):
-        particle.assign_machines(machine)
+        particle.assign_machines(machine, m)
     
     
 def assign_processing_times(jobs, ptimes):
@@ -232,17 +232,39 @@ def check_global_best(swarm, gbest):
 def assignMjConstraints(newjobs):
     # random_lists = [generateMjConstraint(m) for _ in range(n)]
     
-    MjConst = [0,2]
+    MjConst1 = [0,2]
+    MjConst2 = [1]
     
     # Assign the randomly generated lists to the corresponding elements in each sublist
     for sublist in newjobs:
-        sublist[5].Mj = MjConst
+        sublist[0].Mj = MjConst2
+        sublist[5].Mj = MjConst1
+        
 
 def check_Mj_constraint(particle):
     for machine in particle.machine_list:
         for job in machine.joblist:
             if machine.machine_id not in job[1].Mj and len(job[1].Mj) != 0:
                 particle.put_penalty()
+                
+def check_precedence_constraint(particle):
+    
+    prec_const = [7, 3]
+    first = Job(1)
+    second = Job(2)
+    
+    for machine in particle.machine_list:
+        for job in machine.joblist:
+            if job[1].job_number == prec_const[0]:
+                first = job[1]
+    for machine in particle.machine_list:
+        for job in machine.joblist:
+            if job[1].job_number == prec_const[1]:
+                second = job[1]
+            
+            
+    if second.Cj <= first.Cj + second.Pj:
+        particle.put_penalty()
     
     
 # plt.show()
@@ -349,6 +371,7 @@ if __name__ == '__main__':
             assign_jobs_to_machines(particle, newjobs[i])
             getinduv_makespan(particle)
             check_Mj_constraint(particle)
+            check_precedence_constraint(particle)
             set_local_best(particle)
             
         check_global_best(swarm, gbest)

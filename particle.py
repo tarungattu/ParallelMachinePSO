@@ -20,12 +20,12 @@ class Particle:
         
         # self.joblist = []
         # self.index = []
-    def assign_machines(self, machine_list):
-        if len(machine_list) < 3:
+    def assign_machines(self, machine_list, m):
+        if len(machine_list) < m:
             raise ValueError("Insufficient number of machines")
 
             # Assign three machine objects to the swarm
-        self.machine_list = machine_list[:3]
+        self.machine_list = machine_list[:m]
         
     def get_last_job_completiontime(self, machine_list):
         for machine in machine_list:
